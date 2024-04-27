@@ -51,7 +51,10 @@ import { mapMenuListToIds } from '@/utils/map-menus'
 
 // 逻辑关系
 const { contentRef, handleQueryClick, handleResetClick } = usePageContent()
-const { modalRef, handleNewClick, handleEditClick } = usePageModal(editCallback)
+const { modalRef, handleNewClick, handleEditClick } = usePageModal(
+  editCallback,
+  newCallback
+)
 
 // 获取完整的菜单
 const mainStore = useMainStore()
@@ -63,12 +66,14 @@ function handleElTreeCheck(data1: any, data2: any) {
   otherInfo.value = { menuList }
 }
 
-
-
-
-
-//回显操作
 const treeRef = ref<InstanceType<typeof ElTree>>()
+//清空树的data
+function newCallback() {
+  nextTick(() => {
+    treeRef.value?.setCheckedKeys('')
+  })
+}
+//回显操作
 function editCallback(itemData: any) {
   nextTick(() => {
     const menuIds = mapMenuListToIds(itemData.menuList) //需要从信息中提取底层id（不能够拿上层id，要不然就是全部选中）
@@ -78,3 +83,4 @@ function editCallback(itemData: any) {
 </script>
 
 <style lang="less" scoped></style>
+, nextTick

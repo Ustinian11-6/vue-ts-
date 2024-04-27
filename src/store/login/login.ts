@@ -11,12 +11,21 @@ import { LOGIN_TOKEN } from '@/global/constants'
 import { mapMenusToRoutes } from '@/utils/map-menus'
 import router from '@/router'
 import useMainStore from '../main/main'
+import { mapMenusToPermissions } from '@/utils/map-menus'
+
+interface ILoginState {
+  token: string
+  userInfo: any
+  userMenus: any
+  permissions: string[]
+}
 
 const useloginStore = defineStore('login', {
-  state: () => ({
+  state: (): ILoginState => ({
     token: '',
     userInfo: '',
-    userMenus: ''
+    userMenus: '',
+    permissions: []
   }),
   getters: {},
   actions: {
@@ -40,6 +49,11 @@ const useloginStore = defineStore('login', {
       const MainStore = useMainStore()
       MainStore.fetchEntireDataAction()
 
+      // 重要: 获取登录用户的所有按钮的权限
+      const permissions = mapMenusToPermissions(userMenus)
+      // console.log(permissions)
+      this.permissions = permissions
+
       // 4.进行本地缓存
       localCache.setCache('userInfo', userInfo)
       localCache.setCache('userMenus', userMenus)
@@ -62,6 +76,10 @@ const useloginStore = defineStore('login', {
         //加载部门、角色、菜单列表
         const MainStore = useMainStore()
         MainStore.fetchEntireDataAction()
+
+        const permissions = mapMenusToPermissions(userMenus)
+        // console.log(permissions)
+        this.permissions = permissions
 
         // 2.动态添加路由
         const routes = mapMenusToRoutes(userMenus)

@@ -22,7 +22,7 @@
             :size="30"
             src="https://upload.jianshu.io/users/upload_avatars/1102036/c3628b478f06.jpeg"
           />
-          <span class="name">coderwhy</span>
+          <span class="name">{{ loginStore.userInfo.name }}</span>
         </span>
         <template #dropdown>
           <el-dropdown-menu>
@@ -49,6 +49,8 @@
 import { useRouter } from 'vue-router'
 import { LOGIN_TOKEN } from '@/global/constants'
 import { localCache } from '@/utils/cache'
+import useLoginstore from '@/store/login/login'
+const loginStore = useLoginstore()
 
 const router = useRouter()
 function handleExitClick() {

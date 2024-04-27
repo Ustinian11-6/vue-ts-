@@ -2,11 +2,13 @@
   <div class="content">
     <div class="header">
       <h3 class="title">用户列表</h3>
-      <el-button type="primary" @click="handleNewUserClick">新建用户</el-button>
+      <el-button v-if="isCreate" type="primary" @click="handleNewUserClick"
+        >新建用户</el-button
+      >
     </div>
     <div class="table">
       <el-table :data="usersList" border style="width: 100%">
-        <el-table-column align="center" type="selection" width="50px" />
+        <el-table-column align="center" type="selection" width="60px" />
         <el-table-column
           align="center"
           type="index"
@@ -37,30 +39,42 @@
           label="状态"
           prop="enable"
           width="100px"
-        />
-        <el-table-column align="center" label="创建时间" prop="createAt">
-          <template #default="score">{{
-            formatUTC(score.row.createAt)
-          }}</template>
-        </el-table-column>
-        <el-table-column align="center" label="更新时间" prop="updateAt">
-          <template #default="score">{{
-            formatUTC(score.row.updateAt)
-          }}</template>
-        </el-table-column>
-
-        <el-table-column align="center" label="操作" width="150px">
+        >
+          <!-- 作用域插槽 -->
           <template #default="scope">
             <el-button
               size="small"
+              :type="scope.row.enable ? 'primary' : 'danger'"
+              plain
+            >
+              {{ scope.row.enable ? '启用' : '禁用' }}
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="创建时间" prop="createAt">
+          <template #default="scope">
+            {{ formatUTC(scope.row.createAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="更新时间" prop="updateAt">
+          <template #default="scope">
+            {{ formatUTC(scope.row.updateAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="操作" width="150px">
+          <template #default="scope">
+            <el-button
+              v-if="isUpdate"
+              size="small"
               icon="Edit"
               type="primary"
-              @click="handleEditBtnClick(scope.row)"
               text
+              @click="handleEditBtnClick(scope.row)"
             >
               编辑
             </el-button>
             <el-button
+              v-if="isDelete"
               size="small"
               icon="Delete"
               type="danger"
@@ -91,19 +105,28 @@
 import { storeToRefs } from 'pinia'
 import useSystemStore from '@/store/main/system/system'
 import { formatUTC } from '@/utils/format'
-import { ref, defineExpose, defineEmits } from 'vue'
+import { ref } from 'vue'
+import usePermissions from '@/hooks/usePermissions'
 
-const currentPage = ref(1)
-const pageSize = ref(10)
-
+// 定义事件
 const emit = defineEmits(['newClick', 'editClick'])
+
+// 用户的权限判断
+const isCreate = usePermissions('users:create')
+const isDelete = usePermissions('users:delete')
+const isUpdate = usePermissions('users:delete')
+const isQuery = usePermissions('users:query')
 
 // 1.发起action，请求usersList的数据
 const systemStore = useSystemStore()
-systemStore.postUsersListAction()
+const currentPage = ref(1)
+const pageSize = ref(10)
+fetchUserListData()
+
 // 2.获取usersList数据,进行展示
 const { usersList, usersTotalCount } = storeToRefs(systemStore)
 
+// 3.页码相关的逻辑
 function handleSizeChange() {
   fetchUserListData()
 }
@@ -111,7 +134,10 @@ function handleCurrentChange() {
   fetchUserListData()
 }
 
+// 4.定义函数, 用于发送网络请求
 function fetchUserListData(formData: any = {}) {
+  if (!isQuery) return
+
   // 1.获取offset/size
   const size = pageSize.value
   const offset = (currentPage.value - 1) * size
@@ -122,21 +148,18 @@ function fetchUserListData(formData: any = {}) {
   systemStore.postUsersListAction(queryInfo)
 }
 
-function handleDeleteBtnClick(id) {
+// 5.删除/新建/编辑的操作
+function handleDeleteBtnClick(id: number) {
   systemStore.deleteUserByIdAction(id)
 }
-
 function handleNewUserClick() {
   emit('newClick')
 }
-function handleEditBtnClick(info: any) {
-  // console.log('点击')
-  emit('editClick', info)
+function handleEditBtnClick(itemData: any) {
+  emit('editClick', itemData)
 }
 
-defineExpose({
-  fetchUserListData
-})
+defineExpose({ fetchUserListData })
 </script>
 
 <style lang="less" scoped>
@@ -174,4 +197,3 @@ defineExpose({
   margin-top: 10px;
 }
 </style>
-, defineEmits
