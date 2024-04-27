@@ -3,9 +3,11 @@ import 'normalize.css'
 import './assets/css/index.less'
 import App from './App.vue'
 import router from './router'
-import pinia from './store'
+import store from './store'
+import Icons from './global/register-icons'
 
 const app = createApp(App)
+app.use(Icons)
+app.use(store)
 app.use(router)
-app.use(pinia)
 app.mount('#app')
